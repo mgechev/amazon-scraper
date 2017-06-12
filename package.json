@@ -1,0 +1,8 @@
+{
+  "name": "amazon-scaper",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "author": "Minko Gechev <mgechev@gmail.com>",
+  "license": "MIT"
+}
