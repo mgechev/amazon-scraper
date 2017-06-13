@@ -49,10 +49,20 @@ var processNextCategory = function () {
           var categoryUrl = sessionStorage.getItem('categoryUrl');
           if (categoryUrl !== window.location.href &&
               categoryUrl) {
+            handleSubcategory();
+          } else {
+            handleCategory();
+          }
+
+          function handleSubcategory() {
             console.log('Subcategory!', window.location.href);
             console.log('Navigating back to', categoryUrl);
+            var cells = document.querySelectorAll('.s-result-item.celwidget');
+            console.log(cells.length);
             window.location.href = categoryUrl;
-          } else {
+          }
+
+          function handleCategory() {
             var subCategories = [];
             if (sessionStorage.getItem('toTraverse')) {
               subCategories = JSON.parse(sessionStorage.getItem('toTraverse'));
