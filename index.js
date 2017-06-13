@@ -1,31 +1,89 @@
-// phantomjs --ignore-ssl-errors=yes --web-security=false req.js
+// phantomjs --ignore-ssl-errors=yes --web-security=false index.js
 
-console.log('Loading a web page');
+phantom.onError = function (msg, trace) {
+  var msgStack = ['PHANTOM ERROR: ' + msg];
+  if (trace && trace.length) {
+    msgStack.push('TRACE:');
+    trace.forEach(function(t) {
+      msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
+    });
+  }
+  console.error(msgStack.join('\n'));
+  phantom.exit(1);
+};
+
+console.log('Scraping started');
 var page = require('webpage').create();
-const xhr = require('./xhr');
-var url = 'https://www.amazon.com/Audio-Video-Accessories-Supplies/b/ref=dp_bc_3?ie=UTF8&node=172532';
-page.open(url, function (status) {
-  xhr();
-});
+
+page.onConsoleMessage = function(msg) {
+  console.log(msg);
+};
 
 
-// var request = require('request');
+// var xhr = require('./xhr');
+var Categories = require('./config').Categories;
 
-// var options = {
-//   url: 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank=14&category=Office%20Products&dailyToken=qzREtlDWWb3V9Sf/0UluOA==',
-//   headers: {
-//     'Host': 'www.amazon.com',
-//     'User-Agent': ' Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-//   }
-// };
+var currentCategory = 0;
 
-// function callback(error, response, body) {
-//   if (!error && response.statusCode == 200) {
-//     var info = JSON.parse(body);
-//     console.log(info);
-//   } else {
-//     console.log(error);
-//   }
-// }
+var processNextCategory = function () {
+  if (currentCategory >= Categories.length) {
+    console.log('No more categories. Finishing.')
+    phantom.exit();
+    return;
+  } else {
+    var url = Categories[currentCategory];
+    console.log('Processing URL:', url);
+    page.onCallback = function () {
+      console.log('Trying new category.');
+      currentCategory += 1;
+      processNextCategory();
+    };
+    page.open(url);
 
-// request(options, callback);
+    var lastUrl = null;
+
+    page.onLoadFinished = function() {
+      if (lastUrl !== page.url) {
+        lastUrl = page.url;
+        page.evaluate(function () {
+          var categoryUrl = sessionStorage.getItem('categoryUrl');
+          if (categoryUrl !== window.location.href &&
+              categoryUrl) {
+            console.log('Subcategory!', window.location.href);
+            console.log('Navigating back to', categoryUrl);
+            window.location.href = categoryUrl;
+          } else {
+            var subCategories = [];
+            if (sessionStorage.getItem('toTraverse')) {
+              subCategories = JSON.parse(sessionStorage.getItem('toTraverse'));
+            } else {
+              var lis = document.querySelectorAll('#leftNav .categoryRefinementsSection li a');
+              sessionStorage.setItem('categoryUrl', window.location.href);
+              // Ignore the first link, it's back to the main category
+              for (var i = lis.length - 2; i < lis.length; i += 1) {
+                subCategories.push(lis[i].href);
+              }
+            }
+
+            if (!subCategories.length) {
+              console.log('Category finished!');
+              sessionStorage.clear();
+              if (window.callPhantom) {
+                window.callPhantom();
+              }
+            } else {
+              console.log('All remaining subcategories:\n', '\t' + subCategories.join('\n\t'));
+              var newUrl = subCategories.shift();
+              // console.log('Processing URL:', newUrl);
+              sessionStorage.setItem('toTraverse', JSON.stringify(subCategories));
+              console.log('Navigating to', newUrl);
+              window.location.href = newUrl;
+            }
+          }
+        });
+      }
+    };
+  }
+};
+
+processNextCategory();
