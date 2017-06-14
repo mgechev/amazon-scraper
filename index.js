@@ -60,22 +60,29 @@ var processNextCategory = function () {
             console.log('Subcategory!', window.location.href);
             console.log('Navigating back to', categoryUrl);
             var links = document.querySelectorAll('.s-result-item.celwidget div.a-section.a-inline-block > a');
-            console.log(links.length);
+            var totalReady = 0;
 
-            var XMLRequest = $.ajax({
-              type: "GET",
-              url: links[0].href,
-              success: function(data, textStatus) {
-                //Product data
-                var myHTML = insertDocument(data);
-                var parser = new Parser(myHTML);
-                console.log(JSON.stringify(parser.getRankAndCategory('Best Sellers Rank')));
-                window.location.href = categoryUrl;
-              },
-              error: function(jqXHR, textStatus, errorThrown){
-                console.error('Error', errorThrown);
-              }
-            });
+            for (var i = 0; i < links.length; i += 1) {
+              (function (href, links) {
+                var XMLRequest = $.ajax({
+                  type: "GET",
+                  url: href,
+                  success: function(data, textStatus) {
+                    console.log('Processing product');
+                    var myHTML = insertDocument(data);
+                    var parser = new Parser(myHTML);
+                    console.log(JSON.stringify(parser.getRankAndCategory('Best Sellers Rank')));
+                    totalReady += 1;
+                    if (totalReady >= links.length) {
+                      window.location.href = categoryUrl;
+                    }
+                  },
+                  error: function(jqXHR, textStatus, errorThrown){
+                    console.error('Error', errorThrown);
+                  }
+                });
+              }(links[i].href, links));
+            }
 
           }
 
