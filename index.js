@@ -36,6 +36,7 @@ var processNextCategory = function () {
     var url = Categories[currentCategory];
     var categories = [];
     console.log('Processing URL:', url);
+
     page.onCallback = function (data) {
       console.log('Trying new category.');
       categories.push(JSON.parse(data));
@@ -163,10 +164,11 @@ var processNextCategory = function () {
 
             if (!subCategories.length) {
               console.log('Category finished!');
-              if (window.callPhantom) {
-                window.callPhantom(sessionStorage.getItem('currentCategory'));
-              }
+              var item = sessionStorage.getItem('currentCategory');
               sessionStorage.clear();
+              if (window.callPhantom) {
+                window.callPhantom(item);
+              }
             } else {
               console.log('All remaining subcategories:\n', '\t' + subCategories.join('\n\t'));
               var newUrl = subCategories.shift();
