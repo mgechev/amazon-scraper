@@ -35,8 +35,9 @@ var processNextCategory = function () {
   } else {
     var url = Categories[currentCategory];
     console.log('Processing URL:', url);
-    page.onCallback = function () {
+    page.onCallback = function (data) {
       console.log('Trying new category.');
+      require('fs').write('result.json', data, 'a\+');
       currentCategory += 1;
       processNextCategory();
     };
@@ -55,15 +56,18 @@ var processNextCategory = function () {
               categoryUrl) {
             handleSubcategory();
           } else {
+            initCategory();
             handleCategory();
           }
 
           function handleSubcategory() {
             console.log('Subcategory!', window.location.href);
-            console.log('Navigating back to', categoryUrl);
             var links = document.querySelectorAll('.s-result-item.celwidget div.a-section.a-inline-block > a');
             console.log('Processing top ' + links.length + ' products');
             var totalReady = 0;
+
+            var title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1 > b').innerText;
+            var products = [];
 
             for (var i = 0; i < links.length; i += 1) {
               (function (href, links) {
@@ -74,6 +78,11 @@ var processNextCategory = function () {
                     console.log('Processing product');
                     var myHTML = insertDocument(data);
                     var parser = new Parser(myHTML);
+                    var productTitle = parser.getProductTitle();
+                    var productImage = parser.getProductImage();
+                    var productPrice = parser.getPrice();
+                    var productBrand = parser.getBrand();
+                    var rating = parser.getRating();
                     var data = parser.getRankAndCategory('Best Sellers Rank');
                     var productUrl = 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank='
                         + data.rank + '&category=' + encodeURIComponent(data.category) + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
@@ -82,10 +91,24 @@ var processNextCategory = function () {
                       type: 'GET',
                       url: productUrl,
                       success: function(data, textStatus) {
-                        console.log(JSON.stringify(data));
+                        products.push({
+                          title: productTitle,
+                          image: productImage,
+                          price: productPrice,
+                          brand: productBrand,
+                          rating: rating,
+                          sales: data.estSalesResult
+                        });
                         totalReady += 1;
                         if (totalReady >= links.length) {
                           console.log('Completed all ' + totalReady + ' products.');
+                          var category = JSON.parse(localStorage.getItem('currentCategory'));
+                          category.subCategories.push({
+                            title: title,
+                            url: location.href,
+                            products: products
+                          });
+                          localStorage.setItem('currentCategory', JSON.stringify(category));
                           window.location.href = categoryUrl;
                         }
                       }
@@ -100,6 +123,17 @@ var processNextCategory = function () {
 
           }
 
+          function initCategory() {
+            var title = document.querySelector('#merchandised-content > div.celwidget.bxw-pageheader.is-desktop > div.bxw-pageheader__title > div > h1').innerText;
+            var url = window.location.href;
+            localStorage.removeItem('currentCategory');
+            localStorage.setItem('currentCategory', JSON.stringify({
+              title: title,
+              url: url,
+              subCategories: []
+            }));
+          }
+
           function handleCategory() {
             var subCategories = [];
             if (sessionStorage.getItem('toTraverse')) {
@@ -108,7 +142,7 @@ var processNextCategory = function () {
               var links = document.querySelectorAll('#leftNav > ul:nth-child(2) > ul > div > li a');
               sessionStorage.setItem('categoryUrl', window.location.href);
               // Ignore the first link, it's back to the main category
-              for (var i = 0; i < links.length; i += 1) {
+              for (var i = links.length - 2; i < links.length; i += 1) {
                 subCategories.push(links[i].href);
               }
             }
@@ -117,7 +151,7 @@ var processNextCategory = function () {
               console.log('Category finished!');
               sessionStorage.clear();
               if (window.callPhantom) {
-                window.callPhantom();
+                window.callPhantom(localStorage.getItem('currentCategory'));
               }
             } else {
               console.log('All remaining subcategories:\n', '\t' + subCategories.join('\n\t'));
