@@ -73,7 +73,14 @@ var processNextCategory = function () {
             if (!title) {
               title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1');
             }
-            title = title.innerText;
+            if (!title) {
+              title = document.querySelector('#categoryTiles_597926 > h2');
+            }
+            if (title) {
+              title = title.innerText;
+            } else {
+              title = 'Unknown';
+            }
 
             var products = [];
 
