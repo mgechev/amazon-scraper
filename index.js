@@ -37,6 +37,7 @@ var processNextCategory = function () {
     console.log('Processing URL:', url);
     page.onCallback = function (data) {
       console.log('Trying new category.');
+      console.log('storing data', data);
       require('fs').write('result.json', data, 'a\+');
       currentCategory += 1;
       processNextCategory();
@@ -71,6 +72,7 @@ var processNextCategory = function () {
               title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1');
             }
             title = title.innerText;
+
             var products = [];
 
             for (var i = 0; i < links.length; i += 1) {
