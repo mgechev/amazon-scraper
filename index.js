@@ -34,11 +34,12 @@ var processNextCategory = function () {
     return;
   } else {
     var url = Categories[currentCategory];
+    var categories = [];
     console.log('Processing URL:', url);
     page.onCallback = function (data) {
       console.log('Trying new category.');
-      console.log('storing data', data);
-      require('fs').write('result.json', data, 'a\+');
+      categories.push(JSON.parse(data));
+      require('fs').write('result.json', JSON.stringify(categories, null, 2), 'w');
       currentCategory += 1;
       processNextCategory();
     };
@@ -162,10 +163,10 @@ var processNextCategory = function () {
 
             if (!subCategories.length) {
               console.log('Category finished!');
-              sessionStorage.clear();
               if (window.callPhantom) {
                 window.callPhantom(sessionStorage.getItem('currentCategory'));
               }
+              sessionStorage.clear();
             } else {
               console.log('All remaining subcategories:\n', '\t' + subCategories.join('\n\t'));
               var newUrl = subCategories.shift();
