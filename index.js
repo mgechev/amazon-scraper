@@ -62,6 +62,7 @@ var processNextCategory = function () {
             console.log('Subcategory!', window.location.href);
             console.log('Navigating back to', categoryUrl);
             var links = document.querySelectorAll('.s-result-item.celwidget div.a-section.a-inline-block > a');
+            console.log('Processing top ' + links.length + ' products');
             var totalReady = 0;
 
             for (var i = 0; i < links.length; i += 1) {
@@ -107,7 +108,7 @@ var processNextCategory = function () {
               var links = document.querySelectorAll('#leftNav > ul:nth-child(2) > ul > div > li a');
               sessionStorage.setItem('categoryUrl', window.location.href);
               // Ignore the first link, it's back to the main category
-              for (var i = links.length - 2; i < links.length; i += 1) {
+              for (var i = 0; i < links.length; i += 1) {
                 subCategories.push(links[i].href);
               }
             }
