@@ -27,6 +27,8 @@ var DailyToken = require('./config').DailyToken;
 
 var currentCategory = 0;
 
+var categories = [];
+
 var processNextCategory = function () {
   if (currentCategory >= Categories.length) {
     console.log('No more categories. Finishing.')
@@ -34,7 +36,6 @@ var processNextCategory = function () {
     return;
   } else {
     var url = Categories[currentCategory];
-    var categories = [];
     console.log('Processing URL:', url);
 
     page.onCallback = function (data) {
