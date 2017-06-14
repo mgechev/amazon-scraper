@@ -14,6 +14,7 @@ phantom.onError = function (msg, trace) {
 
 console.log('Scraping started');
 var page = require('webpage').create();
+page.settings.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36';
 
 page.onConsoleMessage = function(msg) {
   console.log(msg);
@@ -22,6 +23,7 @@ page.onConsoleMessage = function(msg) {
 
 // var xhr = require('./xhr');
 var Categories = require('./config').Categories;
+var DailyToken = require('./config').DailyToken;
 
 var currentCategory = 0;
 
@@ -71,11 +73,22 @@ var processNextCategory = function () {
                     console.log('Processing product');
                     var myHTML = insertDocument(data);
                     var parser = new Parser(myHTML);
-                    console.log(JSON.stringify(parser.getRankAndCategory('Best Sellers Rank')));
-                    totalReady += 1;
-                    if (totalReady >= links.length) {
-                      window.location.href = categoryUrl;
-                    }
+                    var data = parser.getRankAndCategory('Best Sellers Rank');
+                    var productUrl = 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank='
+                        + data.rank + '&category=' + data.category + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
+                    console.log(productUrl);
+                    $.ajax({
+                      type: 'GET',
+                      url: productUrl,
+                      success: function(data, textStatus) {
+                        console.log(JSON.stringify(data));
+                        totalReady += 1;
+                        if (totalReady >= links.length) {
+                          console.log('Completed all ' + totalReady + ' products.');
+                          window.location.href = categoryUrl;
+                        }
+                      }
+                    });
                   },
                   error: function(jqXHR, textStatus, errorThrown){
                     console.error('Error', errorThrown);
@@ -91,11 +104,11 @@ var processNextCategory = function () {
             if (sessionStorage.getItem('toTraverse')) {
               subCategories = JSON.parse(sessionStorage.getItem('toTraverse'));
             } else {
-              var lis = document.querySelectorAll('#leftNav .categoryRefinementsSection li a');
+              var links = document.querySelectorAll('#leftNav > ul:nth-child(2) > ul > div > li a');
               sessionStorage.setItem('categoryUrl', window.location.href);
               // Ignore the first link, it's back to the main category
-              for (var i = lis.length - 2; i < lis.length; i += 1) {
-                subCategories.push(lis[i].href);
+              for (var i = links.length - 2; i < links.length; i += 1) {
+                subCategories.push(links[i].href);
               }
             }
 
