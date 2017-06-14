@@ -64,13 +64,29 @@ var processNextCategory = function () {
             handleCategory();
           }
 
+          function getTitle() {
+            var title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1 > b');
+            if (!title) {
+              title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1');
+            }
+            if (!title) {
+              title = document.querySelector('#categoryTiles_597926 > h2');
+            }
+            if (title) {
+              title = title.innerText;
+            } else {
+              title = 'Unknown';
+            }
+            return title;
+          }
+
           function handleSubcategory() {
             console.log('Subcategory!', window.location.href);
             var links = document.querySelectorAll('.s-result-item.celwidget div.a-section.a-inline-block > a');
             if (!links.length) {
               var category = JSON.parse(sessionStorage.getItem('currentCategory'));
               category.subCategories.push({
-                title: title,
+                title: getTitle(),
                 url: location.href,
                 products: []
               });
@@ -83,19 +99,6 @@ var processNextCategory = function () {
             function processProducts() {
               console.log('Processing top ' + links.length + ' products');
               var totalReady = 0;
-
-              var title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1 > b');
-              if (!title) {
-                title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1');
-              }
-              if (!title) {
-                title = document.querySelector('#categoryTiles_597926 > h2');
-              }
-              if (title) {
-                title = title.innerText;
-              } else {
-                title = 'Unknown';
-              }
 
               var products = [];
 
@@ -135,7 +138,7 @@ var processNextCategory = function () {
                             console.log('Completed all ' + totalReady + ' products.');
                             var category = JSON.parse(sessionStorage.getItem('currentCategory'));
                             category.subCategories.push({
-                              title: title,
+                              title: getTitle(),
                               url: location.href,
                               products: products
                             });
