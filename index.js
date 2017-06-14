@@ -66,75 +66,90 @@ var processNextCategory = function () {
           function handleSubcategory() {
             console.log('Subcategory!', window.location.href);
             var links = document.querySelectorAll('.s-result-item.celwidget div.a-section.a-inline-block > a');
-            console.log('Processing top ' + links.length + ' products');
-            var totalReady = 0;
-
-            var title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1 > b');
-            if (!title) {
-              title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1');
-            }
-            if (!title) {
-              title = document.querySelector('#categoryTiles_597926 > h2');
-            }
-            if (title) {
-              title = title.innerText;
+            if (!links.length) {
+              var category = JSON.parse(sessionStorage.getItem('currentCategory'));
+              category.subCategories.push({
+                title: title,
+                url: location.href,
+                products: []
+              });
+              sessionStorage.setItem('currentCategory', JSON.stringify(category));
+              window.location.href = categoryUrl;
             } else {
-              title = 'Unknown';
+              processProducts();
             }
 
-            var products = [];
+            function processProducts() {
+              console.log('Processing top ' + links.length + ' products');
+              var totalReady = 0;
 
-            for (var i = 0; i < links.length; i += 1) {
-              (function (href, links, rank) {
-                var XMLRequest = $.ajax({
-                  type: "GET",
-                  url: href,
-                  success: function(data, textStatus) {
-                    console.log('Processing product');
-                    var myHTML = insertDocument(data);
-                    var parser = new Parser(myHTML);
-                    var productTitle = parser.getProductTitle();
-                    var productImage = parser.getProductImage();
-                    var productPrice = parser.getPrice();
-                    var productBrand = parser.getBrand();
-                    var rating = parser.getRating();
-                    var data = parser.getRankAndCategory('Best Sellers Rank');
-                    var productUrl = 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank='
-                        + data.rank + '&category=' + encodeURIComponent(data.category) + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
-                    console.log(productUrl);
-                    $.ajax({
-                      type: 'GET',
-                      url: productUrl,
-                      success: function(data, textStatus) {
-                        products.push({
-                          title: productTitle,
-                          image: productImage,
-                          price: productPrice,
-                          brand: productBrand,
-                          rating: rating,
-                          sales: data.estSalesResult,
-                          rank: rank
-                        });
-                        totalReady += 1;
-                        if (totalReady >= links.length) {
-                          console.log('Completed all ' + totalReady + ' products.');
-                          var category = JSON.parse(sessionStorage.getItem('currentCategory'));
-                          category.subCategories.push({
-                            title: title,
-                            url: location.href,
-                            products: products
+              var title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1 > b');
+              if (!title) {
+                title = document.querySelector('#merchandised-content > div.unified_widget.pageBanner > h1');
+              }
+              if (!title) {
+                title = document.querySelector('#categoryTiles_597926 > h2');
+              }
+              if (title) {
+                title = title.innerText;
+              } else {
+                title = 'Unknown';
+              }
+
+              var products = [];
+
+              for (var i = 0; i < links.length; i += 1) {
+                (function (href, links, rank) {
+                  var XMLRequest = $.ajax({
+                    type: "GET",
+                    url: href,
+                    success: function(data, textStatus) {
+                      console.log('Processing product');
+                      var myHTML = insertDocument(data);
+                      var parser = new Parser(myHTML);
+                      var productTitle = parser.getProductTitle();
+                      var productImage = parser.getProductImage();
+                      var productPrice = parser.getPrice();
+                      var productBrand = parser.getBrand();
+                      var rating = parser.getRating();
+                      var data = parser.getRankAndCategory('Best Sellers Rank');
+                      var productUrl = 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank='
+                          + data.rank + '&category=' + encodeURIComponent(data.category) + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
+                      console.log(productUrl);
+                      $.ajax({
+                        type: 'GET',
+                        url: productUrl,
+                        success: function(data, textStatus) {
+                          products.push({
+                            title: productTitle,
+                            image: productImage,
+                            price: productPrice,
+                            brand: productBrand,
+                            rating: rating,
+                            sales: data.estSalesResult,
+                            rank: rank
                           });
-                          sessionStorage.setItem('currentCategory', JSON.stringify(category));
-                          window.location.href = categoryUrl;
+                          totalReady += 1;
+                          if (totalReady >= links.length) {
+                            console.log('Completed all ' + totalReady + ' products.');
+                            var category = JSON.parse(sessionStorage.getItem('currentCategory'));
+                            category.subCategories.push({
+                              title: title,
+                              url: location.href,
+                              products: products
+                            });
+                            sessionStorage.setItem('currentCategory', JSON.stringify(category));
+                            window.location.href = categoryUrl;
+                          }
                         }
-                      }
-                    });
-                  },
-                  error: function(jqXHR, textStatus, errorThrown){
-                    console.error('Error', errorThrown);
-                  }
-                });
-              }(links[i].href, links, i));
+                      });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                      console.error('Error', errorThrown);
+                    }
+                  });
+                }(links[i].href, links, i));
+              }
             }
 
           }
@@ -147,7 +162,12 @@ var processNextCategory = function () {
                 return;
               }
             }
-            var title = document.querySelector('#leftNav > ul:nth-child(2) > li.s-ref-indent-one > span > h4').innerText;
+            var title = document.querySelector('#leftNav > ul:nth-child(2) > li.s-ref-indent-one > span > h4');
+            if (title) {
+              title = title.innerText;
+            } else {
+              title = 'Unknown';
+            }
             var url = window.location.href;
             sessionStorage.removeItem('currentCategory');
             sessionStorage.setItem('currentCategory', JSON.stringify({
