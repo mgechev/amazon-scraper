@@ -157,7 +157,7 @@ var processNextCategory = function () {
               var links = document.querySelectorAll('#leftNav > ul:nth-child(2) > ul > div > li a');
               sessionStorage.setItem('categoryUrl', window.location.href);
               // Ignore the first link, it's back to the main category
-              for (var i = links.length - 1; i < links.length; i += 1) {
+              for (var i = 0; i < links.length; i += 1) {
                 subCategories.push(links[i].href);
               }
             }
