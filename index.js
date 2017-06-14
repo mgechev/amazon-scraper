@@ -75,7 +75,7 @@ var processNextCategory = function () {
                     var parser = new Parser(myHTML);
                     var data = parser.getRankAndCategory('Best Sellers Rank');
                     var productUrl = 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank='
-                        + data.rank + '&category=' + data.category + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
+                        + data.rank + '&category=' + encodeURIComponent(data.category) + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
                     console.log(productUrl);
                     $.ajax({
                       type: 'GET',
