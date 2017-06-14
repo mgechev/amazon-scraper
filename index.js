@@ -85,7 +85,7 @@ var processNextCategory = function () {
             var products = [];
 
             for (var i = 0; i < links.length; i += 1) {
-              (function (href, links) {
+              (function (href, links, rank) {
                 var XMLRequest = $.ajax({
                   type: "GET",
                   url: href,
@@ -112,7 +112,8 @@ var processNextCategory = function () {
                           price: productPrice,
                           brand: productBrand,
                           rating: rating,
-                          sales: data.estSalesResult
+                          sales: data.estSalesResult,
+                          rank: rank
                         });
                         totalReady += 1;
                         if (totalReady >= links.length) {
@@ -133,7 +134,7 @@ var processNextCategory = function () {
                     console.error('Error', errorThrown);
                   }
                 });
-              }(links[i].href, links));
+              }(links[i].href, links, i));
             }
 
           }
