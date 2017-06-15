@@ -1,6 +1,11 @@
 <html>
   <head>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  </head>
+  <body>
+    <button id="back-btn">Back</button>
+    <div id="chart_div" style="width: 1000px; height: 700px;"></div>
+
     <script type="text/javascript">
       google.charts.load('current', {'packages':['treemap']});
       google.charts.setOnLoadCallback(drawChart);
@@ -11,22 +16,30 @@
 
       const resultMap = {};
 
+      function formatLabel(entry) {
+        let res = entry.title;
+        if (entry.price) {
+          res += `($${entry.price})`;
+        }
+        return res;
+      }
+
       function formatData(data) {
         resultMap['-1'] = {};
         const result = [[{ v: '-1', f: 'Amazon' }, null, 0]];
         data.forEach((category, i) => {
           resultMap[i.toString()] = category;
-          result.push([{ v: i.toString(), f: category.title }, '-1', 0]);
+          result.push([{ v: i.toString(), f: formatLabel(category) }, '-1', 0]);
           category.subCategories.forEach((subCategory, j) => {
             // Remove all "< 5"
             const products = subCategory.products
               .filter(p => !isNaN(parseInt(p.sales)));
             products.forEach(p => p.sales = parseInt(p.sales));
             resultMap[`${i}-${j}`] = subCategory;
-            result.push([{ v: `${i}-${j}`, f: subCategory.title }, i.toString(), products.reduce((p, cp) => p + cp.sales, 0)]);
+            result.push([{ v: `${i}-${j}`, f: formatLabel(subCategory) }, i.toString(), products.reduce((p, cp) => p + cp.sales, 0)]);
             products.forEach((p, k) => {
               resultMap[`${i}-${j}-${k}`] = p;
-              result.push([{ v: `${i}-${j}-${k}`, f: p.title }, `${i}-${j}`, p.sales])
+              result.push([{ v: `${i}-${j}-${k}`, f: formatLabel(p) }, `${i}-${j}`, p.sales])
             });
           });
         });
@@ -38,7 +51,6 @@
         data.addColumn('string', 'ID');
         data.addColumn('string', 'Parent');
         data.addColumn('number', 'Number Of Sales');
-
 
         var tree = new google.visualization.TreeMap(document.getElementById('chart_div'));
 
@@ -54,7 +66,7 @@
           maxColor: '#ee8100',
           headerHeight: 15,
           showScale: true,
-          height: 500,
+          height: 700,
           useWeightedAverageForAggregation: true,
           generateTooltip: showFullTooltip.bind(null, data)
         };
@@ -63,6 +75,10 @@
           data.addRows(res)
           tree.draw(data, options);
         });
+
+        document.querySelector('#back-btn').addEventListener('click', () => {
+          tree.goUpAndDraw();
+        });
       }
 
 
@@ -70,17 +86,14 @@
         const entry = resultMap[data.getValue(row, 0)];
         let extra = '';
         if (entry.image) {
-          extra += `<br><img src="${entry.image}" width="100">`
+          extra += `<br><img style="display: block; margin: auto;" src="${entry.image}" width="100">`
         }
         return `<div style="background:#fd9; padding:10px; border-style:solid">
-                  ${entry.title}
+                  <div style="max-width: 300px; word-wrap: break-word;">${entry.title}</div>
                   ${extra}
                 </div>`;
       }
 
     </script>
-  </head>
-  <body>
-    <div id="chart_div" style="width: 900px; height: 500px;"></div>
   </body>
 </html>
