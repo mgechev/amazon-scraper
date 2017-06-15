@@ -19,13 +19,13 @@
       function formatLabel(entry) {
         let res = entry.title;
         if (entry.price) {
-          res += `($${entry.price})`;
+          res += ` $${entry.price}`;
         }
         return res;
       }
 
       function formatData(data) {
-        resultMap['-1'] = {};
+        resultMap['-1'] = { title: 'Amazon' };
         const result = [[{ v: '-1', f: 'Amazon' }, null, 0]];
         data.forEach((category, i) => {
           resultMap[i.toString()] = category;
@@ -88,8 +88,15 @@
         if (entry.image) {
           extra += `<br><img style="display: block; margin: auto;" src="${entry.image}" width="100">`
         }
+        function getTitle(entry) {
+          let res = entry.title;
+          if (entry.price) {
+            res += `<br>$${entry.price}`;
+          }
+          return res;
+        }
         return `<div style="background:#fd9; padding:10px; border-style:solid">
-                  <div style="max-width: 300px; word-wrap: break-word;">${entry.title}</div>
+                  <div style="max-width: 300px; word-wrap: break-word;">${getTitle(entry)}</div>
                   ${extra}
                 </div>`;
       }
