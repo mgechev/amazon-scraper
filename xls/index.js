@@ -27,7 +27,6 @@ function getValidName(name) {
     console.error('Invalid name');
     process.exit(1);
   }
-  console.log(cName);
   usedNames[cName] = true;
   return cName;
 }
