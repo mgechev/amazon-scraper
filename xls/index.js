@@ -2,16 +2,31 @@ const xlsx = require('node-xlsx');
 const fs = require('fs');
 const data = require('../scraper/all.json');
 
-function processSubcategory(subCategory) {
+function getTotalEst(subCategory) {
+  return subCategory.products.reduce((a, p) => a + (parseInt(p.sales) || 5), 0);
+}
+
+function processSubcategory(subCategory, totalSales) {
   const subCategoryName = subCategory.title;
   return subCategory.products.map(p => ([
-    subCategoryName, p.title, p.price, parseInt(p.sales) || 5, p.brand, p.url, subCategory.url, p.image ]));
+    subCategoryName,
+    p.title,
+    p.price,
+    parseInt(p.sales) || 5,
+    getTotalEst(subCategory),
+    totalSales,
+    p.brand,
+    p.url,
+    subCategory.url,
+    p.image
+  ]));
 }
 
 function processSheet(category) {
-  const data = [['Sub-category', 'Product', 'Price', 'Est. sales', 'Brand', 'Url', 'Category URL', 'Image']];
+  const data = [['Sub-category', 'Product', 'Price', 'Est. sales',
+  'Sub-category sales', 'Category sales', 'Brand', 'Url', 'Category URL', 'Image']];
   return category.subCategories.reduce((p, subCategory) =>
-    p.concat(processSubcategory(subCategory)), data);
+    p.concat(processSubcategory(subCategory, category.subCategories.reduce((p, c) => p + getTotalEst(c), 0))), data);
 }
 
 const usedNames = {};
