@@ -55,3 +55,4 @@ function processSheets(categories) {
 var buffer = xlsx.build(processSheets(data));
 
 fs.writeFileSync('report.xlsx', buffer);
+
