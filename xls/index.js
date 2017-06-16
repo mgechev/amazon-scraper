@@ -6,15 +6,23 @@ function getTotalEst(subCategory) {
   return subCategory.products.reduce((a, p) => a + (parseInt(p.sales) || 5), 0);
 }
 
-function processSubcategory(subCategory, totalSales) {
+function getTotalProfit(subCategory) {
+  return subCategory
+    .products
+    .reduce((a, p) => a + ((parseInt(p.sales) || 5) * (parseInt(p.price, 10) || 1)), 0);
+}
+
+function processSubcategory(subCategory, totalSales, totalProfit) {
   const subCategoryName = subCategory.title;
   return subCategory.products.map(p => ([
     subCategoryName,
     p.title,
-    p.price,
+    parseInt(p.price) || 'N/A',
     parseInt(p.sales) || 5,
     getTotalEst(subCategory),
     totalSales,
+    getTotalProfit(subCategory),
+    totalProfit,
     p.brand,
     p.url,
     subCategory.url,
@@ -23,10 +31,18 @@ function processSubcategory(subCategory, totalSales) {
 }
 
 function processSheet(category) {
-  const data = [['Sub-category', 'Product', 'Price', 'Est. sales',
-  'Sub-category sales', 'Category sales', 'Brand', 'Url', 'Category URL', 'Image']];
+  const data = [['Sub-category', 'Product', 'Price', 'Monthly units',
+    'Sub-category units', 'Category units', 'Sub-category revenue', 'Category revenue',
+    'Brand', 'Url', 'Category URL', 'Image'
+  ]];
   return category.subCategories.reduce((p, subCategory) =>
-    p.concat(processSubcategory(subCategory, category.subCategories.reduce((p, c) => p + getTotalEst(c), 0))), data);
+    p.concat(
+      processSubcategory(
+        subCategory,
+        category.subCategories.reduce((p, c) => p + getTotalEst(c), 0),
+        category.subCategories.reduce((p, c) => p + getTotalProfit(c), 0)
+      )
+    ), data);
 }
 
 const usedNames = {};
@@ -55,4 +71,3 @@ function processSheets(categories) {
 var buffer = xlsx.build(processSheets(data));
 
 fs.writeFileSync('report.xlsx', buffer);
-
