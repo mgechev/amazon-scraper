@@ -5,11 +5,11 @@ const data = require('../scraper/all.json');
 function processSubcategory(subCategory) {
   const subCategoryName = subCategory.title;
   return subCategory.products.map(p => ([
-    subCategoryName, p.title, p.price, parseInt(p.sales) || 5, p.brand, p.image ]));
+    subCategoryName, p.title, p.price, parseInt(p.sales) || 5, p.brand, p.url, subCategory.url, p.image ]));
 }
 
 function processSheet(category) {
-  const data = [['Sub-category', 'Product', 'Price', 'Est. sales', 'Brand', 'Image']];
+  const data = [['Sub-category', 'Product', 'Price', 'Est. sales', 'Brand', 'Url', 'Category URL', 'Image']];
   return category.subCategories.reduce((p, subCategory) =>
     p.concat(processSubcategory(subCategory)), data);
 }
