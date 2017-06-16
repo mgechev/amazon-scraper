@@ -84,6 +84,9 @@ var processNextCategory = function () {
             console.log('Subcategory!', window.location.href);
             var links = document.querySelectorAll('.s-result-item.celwidget div.a-section.a-inline-block > a');
             if (!links.length) {
+              links = document.querySelectorAll('#mainResults > ul div.a-column.a-span12.a-text-center > a.a-link-normal.a-text-normal');
+            }
+            if (!links.length) {
               var category = JSON.parse(sessionStorage.getItem('currentCategory'));
               category.subCategories.push({
                 title: getTitle(),
@@ -118,12 +121,13 @@ var processNextCategory = function () {
                       var rating = parser.getRating();
                       var data = parser.getRankAndCategory('Best Sellers Rank');
                       var productUrl = 'https://junglescoutpro.herokuapp.com/api/v1/est_sales?store=us&rank='
-                          + data.rank + '&category=' + encodeURIComponent(data.category) + '&dailyToken=' + 'k81Cwu5e/i5aMjNFleHHsw==';
+                          + data.rank + '&category=' + encodeURIComponent(data.category) + '&dailyToken=' + 'phdFVLcRuIL34LuIjhFVBw==';
                       console.log(productUrl);
                       $.ajax({
                         type: 'GET',
                         url: productUrl,
                         success: function(data, textStatus) {
+                          console.log('Sales', data.estSalesResult);
                           products.push({
                             title: productTitle,
                             image: productImage,
