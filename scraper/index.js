@@ -130,6 +130,7 @@ var processNextCategory = function () {
                             price: productPrice,
                             brand: productBrand,
                             rating: rating,
+                            url: productUrl,
                             sales: data.estSalesResult,
                             rank: rank
                           });
